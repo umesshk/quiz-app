@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -37,6 +36,29 @@ func main() {
 
 	problem_set := ParseProblems(records)
 
+	DisplayQuestios(problem_set)
+}
+
+func DisplayQuestios(problem_set []Problem) {
+
+	n := len(problem_set)
+	i := 0
+
+	for i < n {
+
+		fmt.Printf("%s : ", problem_set[i].question)
+		var ans string
+		fmt.Scanf("%s", &ans)
+
+		if ans != problem_set[i].answer {
+
+			exit(fmt.Sprintf("Wrong Answer \nScore %v/%v", i+1, n))
+		}
+		i++
+	}
+
+	exit(fmt.Sprintf("Total Score :  %v/%v", n, n))
+
 }
 
 func ParseProblems(records [][]string) []Problem {
@@ -55,5 +77,6 @@ func ParseProblems(records [][]string) []Problem {
 }
 
 func exit(msg string) {
-	log.Fatal(msg)
+	fmt.Println(msg)
+	os.Exit(1)
 }
