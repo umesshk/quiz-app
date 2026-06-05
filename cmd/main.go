@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 type Problem struct {
@@ -12,9 +13,12 @@ type Problem struct {
 	answer   string
 }
 
+var timer *time.Timer
+
 func main() {
 
 	csv_file_name := flag.String("csv", "problems.csv", "Enter the name of a CSV file contaning [questions,answers]")
+	time_limit := flag.Int("limit", 30, "Enter the time limit for each queston(seconds) ")
 
 	flag.Parse()
 	file, err := os.Open("assests/" + *csv_file_name)
@@ -36,23 +40,36 @@ func main() {
 
 	problem_set := ParseProblems(records)
 
-	DisplayQuestios(problem_set)
+	DisplayQuestios(problem_set, time_limit)
+
 }
 
-func DisplayQuestios(problem_set []Problem) {
+func DisplayQuestios(problem_set []Problem, time_limit *int) {
 
 	n := len(problem_set)
 	i := 0
 
 	for i < n {
-
+		timer = time.NewTimer(time.Duration(*time_limit) * time.Second)
 		fmt.Printf("%s : ", problem_set[i].question)
-		var ans string
-		fmt.Scanf("%s", &ans)
+		inputChannel := make(chan string)
 
-		if ans != problem_set[i].answer {
+		go func() {
+			var ans string
+			fmt.Scanf("%s", &ans)
+			inputChannel <- ans
 
-			exit(fmt.Sprintf("Wrong Answer \nScore %v/%v", i+1, n))
+		}()
+
+		select {
+		case <-timer.C:
+
+			exit(fmt.Sprintf("\nTime Over!! \nScore %v/%v", i, n))
+
+		case ans := <-inputChannel:
+			if ans != problem_set[i].answer {
+				exit(fmt.Sprintf("Wrong Answer \nScore %v/%v", i+1, n))
+			}
 		}
 		i++
 	}
